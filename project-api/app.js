@@ -1,74 +1,29 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const multer = require('multer');
-const bodyParser = require('body-parser');
-const path = require('path');
-const fs = require('fs');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db'); // Import the database connection function
+const authRoutes = require('./routes/authRoutes'); // Import authentication routes
+const locationRoutes = require('./routes/locationRoutes'); // Import location routes
+const cors = require('cors'); 
+
+dotenv.config(); // Load environment variables
+
+connectDB(); // Connect to MongoDB
 
 const app = express();
 
-// Middleware
-app.use(bodyParser.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.json()); // Middleware to parse JSON
 
-// MongoDB Connection
-mongoose.connect('mongodb://localhost:27017/fileDB', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Could not connect to MongoDB', err));
+// Middleware to enable CORS
+app.use(cors());
 
-// File Schema
-const fileSchema = new mongoose.Schema({
-  filename: String,
-  originalname: String,
-  uploadDate: { type: Date, default: Date.now },
+// Define routes
+app.use('/api/locations', locationRoutes); // Protected locations route
+app.use('/api/auth', authRoutes); // Auth routes for login and registration
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send({ message: err.message });
 });
 
-const File = mongoose.model('File', fileSchema);
-
-// Multer Configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname),
-});
-
-const upload = multer({ storage });
-
-// Routes
-// Upload a file
-app.post('/upload', upload.single('file'), async (req, res) => {
-  if (!req.file) return res.status(400).send('No file uploaded');
-
-  const file = new File({
-    filename: req.file.filename,
-    originalname: req.file.originalname,
-  });
-
-  await file.save();
-  res.status(200).send({
-    message: 'File uploaded successfully',
-    fileId: file._id,
-  });
-});
-
-// Get list of uploaded files
-app.get('/files', async (req, res) => {
-  const files = await File.find();
-  res.status(200).send(files);
-});
-
-// Download a file
-app.get('/download/:id', async (req, res) => {
-  const file = await File.findById(req.params.id);
-  if (!file) return res.status(404).send('File not found');
-
-  const filePath = path.join(__dirname, 'uploads', file.filename);
-  if (fs.existsSync(filePath)) {
-    res.download(filePath, file.originalname);
-  } else {
-    res.status(404).send('File not found on server');
-  }
-});
-
-// Start the server
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+module.exports = app;

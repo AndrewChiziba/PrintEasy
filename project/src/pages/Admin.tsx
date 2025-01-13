@@ -1,49 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QrCode, Printer, BarChart, Plus, Trash2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
+import { fetchLocations, addLocation, deleteLocation, fetchPrintQueue, printFile, fetchAnalytics } from '../services/api';
 
 interface Location {
-  id: string;
+  id?: string;
   name: string;
   address: string;
+}
+
+interface PrintQueue {
+  id: string;
+  location: string;
+  fileName: string;
 }
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('locations');
   const [locations, setLocations] = useState<Location[]>([]);
-  const [newLocation, setNewLocation] = useState({ name: '', address: '' });
+  const [newLocation, setNewLocation] = useState({id: '',  name: '', address: '' });
+  const [printQueue, setPrintQueue] = useState<PrintQueue[]>([]);
+  const [analytics, setAnalytics] = useState({ totalLocations: 0, activeUploads: 0, filesPrinted: 0 });
 
-  const handleAddLocation = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Fetch locations
+    const getLocations = async () => {
+      try {
+        const data = await fetchLocations();
+        setLocations(data);
+      } catch (error) {
+        toast.error('Error fetching locations');
+      }
+    };
+
+    // Fetch print queue
+    const getPrintQueue = async () => {
+      try {
+        const data = await fetchPrintQueue();
+        setPrintQueue(data);
+      } catch (error) {
+        toast.error('Error fetching print queue');
+      }
+    };
+
+    // Fetch analytics data
+    const getAnalytics = async () => {
+      try {
+        const data = await fetchAnalytics();
+        setAnalytics(data);
+      } catch (error) {
+        toast.error('Error fetching analytics');
+      }
+    };
+
+    getLocations();
+    getPrintQueue();
+    getAnalytics();
+  }, []);
+
+  const handleAddLocation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLocation.name || !newLocation.address) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    const location = {
-      id: crypto.randomUUID(),
-      name: newLocation.name,
-      address: newLocation.address,
-    };
-
-    setLocations([...locations, location]);
-    setNewLocation({ name: '', address: '' });
-    toast.success('Location added successfully');
+    try {
+      const data = await addLocation(newLocation);
+      setLocations([...locations, data]);
+      setNewLocation({id:new Date().getTime().toString(), name: '', address: '' });
+      toast.success('Location added successfully');
+    } catch (error) {
+      toast.error('Error adding location');
+    }
   };
 
-  const handleDeleteLocation = (id: string) => {
-    setLocations(locations.filter(loc => loc.id !== id));
-    toast.success('Location deleted successfully');
+  const handleDeleteLocation = async (id: (string | undefined)) => {
+    try {
+      await deleteLocation(id);
+      setLocations(locations.filter((loc) => loc.id !== id));
+      toast.success('Location deleted successfully');
+    } catch (error) {
+      toast.error('Error deleting location');
+    }
   };
 
-  const generateQRUrl = (locationId: string) => {
+  const generateQRUrl = (id: (string | undefined)) => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/upload/${locationId}`;
+    return `${baseUrl}/upload/${id}`;
   };
 
-  const downloadQR = (locationId: string, locationName: string) => {
-    const canvas = document.getElementById(`qr-${locationId}`) as HTMLCanvasElement;
+  const downloadQR = (id:( string | undefined), locationName: string) => {
+    const canvas = document.getElementById(`qr-${id}`) as HTMLCanvasElement;
     if (!canvas) return;
 
     const url = canvas.toDataURL('image/png');
@@ -53,6 +102,16 @@ const Admin = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handlePrint = async (fileId: string) => {
+    try {
+      await printFile(fileId);
+      toast.success('File sent to print');
+      fetchPrintQueue(); // Re-fetch print queue after printing
+    } catch (error) {
+      toast.error('Error printing file');
+    }
   };
 
   return (
@@ -186,7 +245,26 @@ const Admin = () => {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">Print Queue</h2>
               <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-gray-500 text-center">No files in queue</p>
+                {printQueue.length === 0 ? (
+                  <p>No files in the print queue</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {printQueue.map((file) => (
+                      <li key={file.id} className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-medium">{file.fileName}</h3>
+                          <p className="text-sm text-gray-500">{file.location}</p>
+                        </div>
+                        <button
+                          onClick={() => handlePrint(file.id)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          Print
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           )}
@@ -196,15 +274,15 @@ const Admin = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h3 className="text-sm font-medium text-blue-800">Total Locations</h3>
-                  <p className="text-2xl font-bold text-blue-900">{locations.length}</p>
+                  <p className="text-2xl font-bold text-blue-900">{analytics.totalLocations}</p>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
                   <h3 className="text-sm font-medium text-green-800">Active Uploads</h3>
-                  <p className="text-2xl font-bold text-green-900">0</p>
+                  <p className="text-2xl font-bold text-green-900">{analytics.activeUploads}</p>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <h3 className="text-sm font-medium text-purple-800">Files Printed</h3>
-                  <p className="text-2xl font-bold text-purple-900">0</p>
+                  <p className="text-2xl font-bold text-purple-900">{analytics.filesPrinted}</p>
                 </div>
               </div>
             </div>

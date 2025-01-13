@@ -7,6 +7,8 @@ import Home from './pages/Home';
 import Upload from './pages/Upload';
 import Success from './pages/Success';
 import Admin from './pages/Admin';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
             <Route path="/upload/:locationId" element={<Upload />} />
             <Route path="/success/:fileId" element={<Success />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Routes>
         </main>
         <Footer />
