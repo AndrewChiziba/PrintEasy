@@ -18,7 +18,7 @@ app.use(cors());
 
 // Define routes
 app.use('/api/locations', locationRoutes); // Protected locations route
-app.use('/api/auth', authRoutes); // Auth routes for login and registration
+app.use('/api/auth/', authRoutes); // Auth routes for login and registration
 
 // Global error handler
 app.use((err, req, res, next) => {

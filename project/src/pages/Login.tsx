@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogIn, Mail, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { registerUser, loginUser, fetchLocations, logoutUser } from '../services/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,7 +19,15 @@ const Login = () => {
     }
     
     try {
-      // TODO: Implement actual login logic
+
+      const user = {
+        username: formData.email,
+        password: formData.password
+      }
+      
+      const token = await loginUser(formData.email , formData.password);
+      console.log('User logged in, token:', token);
+      
       toast.success('Login successful!');
       navigate('/admin');
     } catch (error) {

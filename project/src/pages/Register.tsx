@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, Lock, User } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { registerUser, loginUser, fetchLocations, logoutUser } from '../services/api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -26,6 +27,9 @@ const Register = () => {
 
     try {
       // TODO: Implement actual registration logic
+      const token = await registerUser(formData.email , formData.password);
+      console.log('User logged in, token:', token);
+
       toast.success('Registration successful! Please sign in.');
       navigate('/login');
     } catch (error) {

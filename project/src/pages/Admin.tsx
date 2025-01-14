@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { fetchLocations, addLocation, deleteLocation, fetchPrintQueue, printFile, fetchAnalytics } from '../services/api';
 
 interface Location {
-  id?: string;
+  _id?: string;
   name: string;
   address: string;
 }
@@ -79,7 +79,7 @@ const Admin = () => {
   const handleDeleteLocation = async (id: (string | undefined)) => {
     try {
       await deleteLocation(id);
-      setLocations(locations.filter((loc) => loc.id !== id));
+      setLocations(locations.filter((loc) => loc._id !== id));
       toast.success('Location deleted successfully');
     } catch (error) {
       toast.error('Error deleting location');
@@ -199,14 +199,14 @@ const Admin = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {locations.map((location) => (
-                  <div key={location.id} className="bg-white p-4 rounded-lg border">
+                  <div key={location._id} className="bg-white p-4 rounded-lg border">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-medium text-gray-900">{location.name}</h3>
                         <p className="text-sm text-gray-500">{location.address}</p>
                       </div>
                       <button
-                        onClick={() => handleDeleteLocation(location.id)}
+                        onClick={() => handleDeleteLocation(location._id)}
                         className="text-red-500 hover:text-red-700"
                       >
                         <Trash2 className="h-5 w-5" />
@@ -214,14 +214,14 @@ const Admin = () => {
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg flex flex-col items-center">
                       <QRCodeSVG
-                        id={`qr-${location.id}`}
-                        value={generateQRUrl(location.id)}
+                        id={`qr-${location._id}`}
+                        value={generateQRUrl(location._id)}
                         size={200}
                         level="H"
                         includeMargin
                       />
                       <button
-                        onClick={() => downloadQR(location.id, location.name)}
+                        onClick={() => downloadQR(location._id, location.name)}
                         className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
                         Download QR Code

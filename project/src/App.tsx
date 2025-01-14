@@ -9,6 +9,7 @@ import Success from './pages/Success';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ResetPassword />} />
           </Routes>
         </main>
         <Footer />
