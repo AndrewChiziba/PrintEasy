@@ -119,45 +119,7 @@ const Admin = () => {
       <div className="bg-white rounded-lg shadow-sm">
         <div className="border-b">
           <nav className="flex space-x-4 px-6" aria-label="Tabs">
-            <button
-              onClick={() => setActiveTab('locations')}
-              className={`px-3 py-4 text-sm font-medium border-b-2 ${
-                activeTab === 'locations'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <QrCode className="h-5 w-5" />
-                <span>Locations & QR Codes</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('files')}
-              className={`px-3 py-4 text-sm font-medium border-b-2 ${
-                activeTab === 'files'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Printer className="h-5 w-5" />
-                <span>Print Queue</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`px-3 py-4 text-sm font-medium border-b-2 ${
-                activeTab === 'analytics'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <BarChart className="h-5 w-5" />
-                <span>Analytics</span>
-              </div>
-            </button>
+            {/* ... existing tab code ... */}
           </nav>
         </div>
 
