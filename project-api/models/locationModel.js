@@ -9,6 +9,20 @@ const locationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  contacts: {
+    whatsapp: {
+      type: String,
+    },
+    telegram: {
+      type: String,
+    },
+    email: {
+      type: String,
+    },
+    phone: {
+      type: String,
+    },
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User', // Assuming 'User' is your user model

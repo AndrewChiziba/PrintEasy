@@ -1,11 +1,14 @@
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
-
-export interface Location {
+interface UploadFile {
   id: string;
   name: string;
-  address: string;
+  binaryContents: string;
+  userId: string;
+  locationId: string;
+  queueId: string;
+  printPreferences: string;
 }
 
 export interface Token {
@@ -36,16 +39,16 @@ apiClient.interceptors.response.use(
   (response) => response.data, // Automatically return the response data
   (error) => {
     const { response } = error;
-     if (response?.status === 401) {
-       console.error('Unauthorized: Redirecting to login...');
+    if (response?.status === 401) {
+      console.error('Unauthorized: Redirecting to login...');
       window.location.href = '/login';
-     } else if (response?.status === 403) {
-       console.error('Forbidden: Insufficient permissions.');
-       window.location.href = '/login';
-     } else if (response?.data?.message === 'Token expired') {
-       console.error('Session expired. Redirecting to login...');
-       window.location.href = '/login';
-     }
+    } else if (response?.status === 403) {
+      console.error('Forbidden: Insufficient permissions.');
+      window.location.href = '/login';
+    } else if (response?.data?.message === 'Token expired') {
+      console.error('Session expired. Redirecting to login...');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
@@ -61,32 +64,19 @@ export const registerUser = async (username: string, password: string): Promise<
   }
 };
 
-
+// Login user
 export const loginUser = async (username: string, password: string): Promise<string> => {
   try {
-    // Define the expected response structure
-    interface LoginResponse {
-      token: string;
-    }
-
-    // Explicitly type the response
     const response = await apiClient.post<string>('/auth/login', { username, password });
-
-    const token  = response.data; // Access the token from response.data
+    const token = response.data;
     console.log('User logged in successfully:', response);
-
     localStorage.setItem('authToken', token); // Save token for later use
     return token;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error response:', error.response?.data);
-    }
     console.error('Error logging in:', error);
     throw error;
   }
 };
-
-
 
 // Check if the user is authenticated
 export const isAuthenticated = (): boolean => {
@@ -119,6 +109,16 @@ export const fetchLocations = async (): Promise<Location[]> => {
   }
 };
 
+// Fetch all locations
+export const fetchLocationById = async (locationId: (string | undefined)): Promise<Location> => {
+  try {
+    return await apiClient.get(`/locations/${locationId}`);
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    throw error;
+  }
+};
+
 // Add a new location
 export const addLocation = async (location: Location): Promise<Location> => {
   try {
@@ -130,12 +130,73 @@ export const addLocation = async (location: Location): Promise<Location> => {
 };
 
 // Delete a location by ID
-export const deleteLocation = async (locationId: string): Promise<void> => {
+export const deleteLocation = async (locationId: string | undefined): Promise<void> => {
   try {
     await apiClient.delete(`/locations/${locationId}`);
     console.log('Location deleted:', locationId);
   } catch (error) {
     console.error('Error deleting location:', error);
+    throw error;
+  }
+};
+
+// Fetch all uploaded files
+export const fetchUploadFiles = async (): Promise<UploadFile[]> => {
+  try {
+    return await apiClient.get('/uploads');
+  } catch (error) {
+    console.error('Error fetching uploaded files:', error);
+    throw error;
+  }
+};
+
+// Fetch a single uploaded file by ID
+export const fetchUploadFileById = async (fileId: string): Promise<UploadFile> => {
+  try {
+    return await apiClient.get(`/uploads/${fileId}`);
+  } catch (error) {
+    console.error('Error fetching file:', error);
+    throw error;
+  }
+};
+
+
+
+// Add a new uploaded file
+export const addUploadFile = async (uploadFile: UploadFile): Promise<UploadFile> => {
+
+  // Axios configuration for multipart/form-data
+  const config = {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  };
+
+  try {
+    return await apiClient.post('/uploads', uploadFile, config );
+  } catch (error) {
+    console.error('Error adding file upload:', error);
+    throw error;
+  }
+};
+
+// Update an uploaded file by ID
+export const updateUploadFile = async (fileId: string, uploadFile: UploadFile): Promise<UploadFile> => {
+  try {
+    return await apiClient.put(`/uploads/${fileId}`, uploadFile);
+  } catch (error) {
+    console.error('Error updating file upload:', error);
+    throw error;
+  }
+};
+
+// Delete an uploaded file by ID
+export const deleteUploadFile = async (fileId: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/uploads/${fileId}`);
+    console.log('File deleted:', fileId);
+  } catch (error) {
+    console.error('Error deleting file upload:', error);
     throw error;
   }
 };

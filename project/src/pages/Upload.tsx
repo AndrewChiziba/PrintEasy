@@ -1,14 +1,50 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
-import { Upload as UploadIcon, File, X } from 'lucide-react';
+import { Upload as UploadIcon, File, X, MessageCircle, Mail, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { addUploadFile, fetchUploadFileById, fetchUploadFiles, fetchLocationById, fetchAnalytics } from '../services/api';
+
+interface Location {
+  id: string;
+  name: string;
+  address: string;
+  contacts: {
+    whatsapp?: string;
+    telegram?: string;
+    email?: string;
+    phone?: string;
+  };
+  user?: string;
+}
+
+interface printPreferences {
+  type: string;
+  size: string;
+}
+
+interface UploadFile {
+  id: string;
+  name: string;
+  binaryContents: ArrayBuffer;
+  userId: string;
+  locationId: string;
+  queueId: string;
+  printPreferences: printPreferences;
+}
 
 const Upload = () => {
   const { locationId } = useParams();
   const [files, setFiles] = useState<File[]>([]);
+  const [location, setLocation] = useState<Location | null>(null);
+  const [printPreferences, setPrintPreferences] = useState({
+    type: 'color',
+    size: 'a4'
+  });
   const navigate = useNavigate();
-  
+  const userId = 'user123'; // Assuming the userId is static for now
+  const queueId = crypto.randomUUID(); // Generating a unique queue ID
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setFiles(prev => [...prev, ...acceptedFiles]);
   }, []);
@@ -27,22 +63,109 @@ const Upload = () => {
     setFiles(files.filter(file => file.name !== name));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (files.length === 0) {
-      toast.error('Please select at least one file to upload');
-      return;
+  // Fetch location details from the API
+  const getLocation = async () => {
+    try {
+      const data = await fetchLocationById(locationId);
+      console.log('data',data);
+      setLocation(data);
+    } catch (error) {
+      toast.error('Error fetching location details');
+    }
+  };
+
+  useEffect(() => {
+    if (locationId) {
+      getLocation();
+    }
+  }, [locationId]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+
+      if (files.length === 0) {
+        toast.error('Please select at least one file to print');
+        return;
+      }
+
+      try {
+        const promises = files.map(async file => {
+          const arrayBuffer = await file.arrayBuffer();  // Get ArrayBuffer from the file
+          console.log('arrayBuffer',arrayBuffer);
+
+          // Convert ArrayBuffer to Uint8Array (this works in the browser)
+          const binaryContents = new Uint8Array(arrayBuffer);
+          console.log('binaryContents',binaryContents);
+          const uploadFile: UploadFile = {
+            id: crypto.randomUUID(),
+            name: file.name,  
+            binaryContents,
+            userId: location?.user as string,
+            locationId: locationId as string,
+            printPreferences: { type:printPreferences.type, size:printPreferences.size},
+            
+            queueId,
+          };
+          console.log('binaryContents',binaryContents, 'uploadFile: ',uploadFile);
+          await addUploadFile(uploadFile);
+          console.log('uploadFile',uploadFile);
+        });
+
+        await Promise.all(promises);
+        toast.success('Files added to the print queue');
+        navigate('/success/' + queueId);
+      } catch (error) {
+        toast.error('Error adding files to the print queue');
+      }
+    };
+  
+  
+  const openSocialLink = (type: string) => {
+    if (!location) return;
+
+    const message = encodeURIComponent(
+      `Hello! I would like to print ${files.length} file(s)\n` +
+      `Print preferences:\n` +
+      `- Type: ${printPreferences.type}\n` +
+      `- Size: ${printPreferences.size.toUpperCase()}`
+    );
+
+    let url = '';
+    switch (type) {
+      case 'whatsapp':
+        url = `https://wa.me/${location.contacts.whatsapp}?text=${message}`;
+        break;
+      case 'telegram':
+        url = `https://t.me/${location.contacts.telegram?.replace('@', '')}`;
+        break;
+      case 'email':
+        url = `mailto:${location.contacts.email}?subject=Print Request&body=${message}`;
+        break;
+      case 'phone':
+        url = `tel:${location.contacts.phone}`;
+        break;
     }
 
-    // TODO: Implement actual file upload with locationId
-    console.log('Uploading files for location:', locationId);
-    toast.success('Files uploaded successfully!');
-    navigate('/success/123'); // Replace with actual file ID
+    if (url) {
+      window.open(url, '_blank');
+    }
   };
+
+  if (!location) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading location details...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Upload Your Files</h1>
+      <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">{location.name}</h2>
+        <p className="text-gray-600">{location.address}</p>
+      </div>
 
       <div
         {...getRootProps()}
@@ -89,14 +212,15 @@ const Upload = () => {
       )}
 
       <form onSubmit={handleSubmit} className="mt-8">
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Print Preferences
             </label>
             <select
+              value={printPreferences.type}
+              onChange={(e) => setPrintPreferences({ ...printPreferences, type: e.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              defaultValue="color"
             >
               <option value="color">Color</option>
               <option value="grayscale">Grayscale</option>
@@ -108,24 +232,14 @@ const Upload = () => {
               Paper Size
             </label>
             <select
+              value={printPreferences.size}
+              onChange={(e) => setPrintPreferences({ ...printPreferences, size: e.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              defaultValue="a4"
             >
               <option value="a4">A4</option>
               <option value="a3">A3</option>
               <option value="letter">Letter</option>
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Contact Email (optional)
-            </label>
-            <input
-              type="email"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="your@email.com"
-            />
           </div>
         </div>
 
@@ -133,8 +247,56 @@ const Upload = () => {
           type="submit"
           className="mt-6 w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
-          Upload Files
+          Add to Print Queue
         </button>
+
+        <div className="mt-8 border-t pt-6">
+          <h3 className="text-sm font-medium text-gray-700 mb-4">
+            Or contact us directly via:
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {location.contacts.whatsapp && (
+              <button
+                type="button"
+                onClick={() => openSocialLink('whatsapp')}
+                className="flex flex-col items-center p-3 rounded-lg bg-gray-50 hover:bg-green-50 transition-colors"
+              >
+                <MessageCircle className="h-6 w-6 text-green-600 mb-2" />
+                <span className="text-sm text-gray-600">WhatsApp</span>
+              </button>
+            )}
+            {location.contacts.telegram && (
+              <button
+                type="button"
+                onClick={() => openSocialLink('telegram')}
+                className="flex flex-col items-center p-3 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors"
+              >
+                <MessageCircle className="h-6 w-6 text-blue-600 mb-2" />
+                <span className="text-sm text-gray-600">Telegram</span>
+              </button>
+            )}
+            {location.contacts.email && (
+              <button
+                type="button"
+                onClick={() => openSocialLink('email')}
+                className="flex flex-col items-center p-3 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors"
+              >
+                <Mail className="h-6 w-6 text-blue-600 mb-2" />
+                <span className="text-sm text-gray-600">Email</span>
+              </button>
+            )}
+            {location.contacts.phone && (
+              <button
+                type="button"
+                onClick={() => openSocialLink('phone')}
+                className="flex flex-col items-center p-3 rounded-lg bg-gray-50 hover:bg-blue-50 transition-colors"
+              >
+                <Phone className="h-6 w-6 text-blue-600 mb-2" />
+                <span className="text-sm text-gray-600">Call</span>
+              </button>
+            )}
+          </div>
+        </div>
       </form>
     </div>
   );

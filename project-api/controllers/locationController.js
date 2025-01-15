@@ -10,18 +10,33 @@ exports.getLocations = async (req, res) => {
   }
 };
 
+// Get a single location for the authenticated user
+exports.getLocation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const location = await Location.findOne({ _id: id, user: req.user.id }); // Filter by user
+    if (!location) {
+      return res.status(404).json({ message: 'Location not found or not authorized' });
+    }
+    res.status(200).json(location);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Add a new location for the authenticated user
 exports.addLocation = async (req, res) => {
   try {
-    const { name, address } = req.body;
+    const { name, address, contacts } = req.body;
+
+    // Ensure that contacts is an object with any of the optional fields
     const newLocation = new Location({
       name,
       address,
+      contacts, // Includes whatsapp, telegram, email, and phone
       user: req.user.id, // Associate the location with the user
     });
 
-    console.log("req: ",req);
-    
     await newLocation.save();
     res.status(201).json(newLocation);
   } catch (error) {
