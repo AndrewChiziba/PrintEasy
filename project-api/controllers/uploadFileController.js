@@ -40,19 +40,32 @@ module.exports = { addUploadFile };
 
 
 
-// Get all uploaded files
 const getUploadFiles = async (req, res) => {
   try {
-    const uploads = await UploadFile.find().find({ userId: req.user.id });
+    // Query files for the authenticated user
+    const uploads = await UploadFile.find({ userId: req.user.id });
+    
+    // Transform binaryContents into a base64 string if required
+    const transformedUploads = uploads.map(file => ({
+      _id: file._id,
+      name: file.name,
+      binaryContents: file.binaryContents.toString('base64'), // Convert binary to base64
+      userId: file.userId,
+      locationId: file.locationId,
+      queueId: file.queueId,
+      printPreferences: file.printPreferences,
+      createdAt: file.createdAt,
+      updatedAt: file.updatedAt,
+    }));
 
-    console.log('Uploads:', uploads);
-
-    res.status(200).json(uploads);
+    // Respond with transformed data
+    res.status(200).json(transformedUploads);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching files:', err);
     res.status(500).json({ message: 'Error fetching files' });
   }
 };
+
 
 // Get a specific upload file by ID
 const getUploadFileById = async (req, res) => {

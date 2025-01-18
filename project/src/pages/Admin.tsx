@@ -145,7 +145,8 @@ const Admin = () => {
 
   const handlePrint = async (fileId: string) => {
     try {
-      await printFile(fileId);
+      //await printFile(fileId);
+
       toast.success('File sent to print');
       fetchPrintQueue(); // Re-fetch print queue after printing
     } catch (error) {
