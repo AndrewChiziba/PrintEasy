@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { QrCode, Printer, BarChart, Plus, Trash2, MessageCircle, Mail, Phone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
-import { fetchLocations, addLocation, deleteLocation, fetchPrintQueue, printFile, fetchAnalytics } from '../services/api';
+import { fetchLocations, addLocation, deleteLocation, fetchPrintQueue, printFile, fetchAnalytics, fetchUploadFiles } from '../services/api';
 
 
 interface Location {
@@ -23,6 +23,16 @@ interface PrintQueue {
   fileName: string;
 }
 
+interface UploadFile {
+  id: string;
+  name: string;
+  binaryContents: string;
+  userId: string;
+  locationId: string;
+  queueId: string;
+  printPreferences: string;
+}
+
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('locations');
   const [locations, setLocations] = useState<Location[]>([]);
@@ -37,7 +47,7 @@ const Admin = () => {
       phone: '',
     }
   });
-  const [printQueue, setPrintQueue] = useState<PrintQueue[]>([]);
+  const [printQueue, setPrintQueue] = useState<UploadFile[]>([]);
   const [analytics, setAnalytics] = useState({ totalLocations: 0, activeUploads: 0, filesPrinted: 0 });
 
   useEffect(() => {
@@ -50,6 +60,17 @@ const Admin = () => {
         toast.error('Error fetching locations');
       }
     };
+
+    const getUploadedFiles = async () => {
+      try {
+        const data = await fetchUploadFiles();
+        setPrintQueue(data);
+        console.log('Uploaded files:', data[0]); // Move this inside the try block
+      } catch (error) {
+        toast.error('Error fetching upload files queue');
+      }
+    };
+    
 
     // Fetch print queue
     const getPrintQueue = async () => {
@@ -72,8 +93,9 @@ const Admin = () => {
     };
 
     getLocations();
-    getPrintQueue();
-    getAnalytics();
+    //getPrintQueue();
+    //getAnalytics();
+    getUploadedFiles();
   }, []);
 
   const handleAddLocation = async (e: React.FormEvent) => {
@@ -373,8 +395,8 @@ const Admin = () => {
                     {printQueue.map((file) => (
                       <li key={file.id} className="flex justify-between items-center">
                         <div>
-                          <h3 className="font-medium">{file.fileName}</h3>
-                          <p className="text-sm text-gray-500">{file.location}</p>
+                          <h3 className="font-medium">{file.name}</h3>
+                          <p className="text-sm text-gray-500">{}</p>
                         </div>
                         <button
                           onClick={() => handlePrint(file.id)}

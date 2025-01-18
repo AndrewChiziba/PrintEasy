@@ -143,15 +143,19 @@ export const deleteLocation = async (locationId: string | undefined): Promise<vo
 // Fetch all uploaded files
 export const fetchUploadFiles = async (): Promise<UploadFile[]> => {
   try {
-    return await apiClient.get('/uploads');
+    const response = await apiClient.get('/uploads'); // Axios GET request
+    console.log('Uploaded files:', response);
+    return response; // Return the data property of the response
   } catch (error) {
     console.error('Error fetching uploaded files:', error);
     throw error;
   }
 };
 
+
 // Fetch a single uploaded file by ID
 export const fetchUploadFileById = async (fileId: string): Promise<UploadFile> => {
+  
   try {
     return await apiClient.get(`/uploads/${fileId}`);
   } catch (error) {

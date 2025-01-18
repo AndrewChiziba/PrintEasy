@@ -13,8 +13,6 @@ connectDB(); // Connect to MongoDB
 
 const app = express();
 
-
-
 // Set the limit for incoming JSON payloads
 app.use(express.json({ limit: '5mb' }));
 

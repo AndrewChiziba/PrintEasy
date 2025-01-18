@@ -43,7 +43,10 @@ module.exports = { addUploadFile };
 // Get all uploaded files
 const getUploadFiles = async (req, res) => {
   try {
-    const uploads = await UploadFile.find().populate('userId locationId');
+    const uploads = await UploadFile.find().find({ userId: req.user.id });
+
+    console.log('Uploads:', uploads);
+
     res.status(200).json(uploads);
   } catch (err) {
     console.error(err);
