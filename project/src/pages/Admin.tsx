@@ -422,7 +422,7 @@ const Admin = () => {
                       <li key={file.id} className="flex justify-between items-center">
                         <div>
                           <h3 className="font-medium">{file.name}</h3>
-                          <p className="text-sm text-gray-500">{}</p>
+                          <p className="text-sm text-gray-500"> {file.printPreferences.size} | {file.printPreferences.type} </p>
                         </div>
                         <button
                           onClick={() => handlePrint(index)}
