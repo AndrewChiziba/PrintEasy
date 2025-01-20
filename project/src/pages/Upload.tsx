@@ -255,7 +255,7 @@ const Upload = () => {
             Or contact us directly via:
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {location.contacts.whatsapp && (
+            {location.contacts?.whatsapp && (
               <button
                 type="button"
                 onClick={() => openSocialLink('whatsapp')}
@@ -265,7 +265,7 @@ const Upload = () => {
                 <span className="text-sm text-gray-600">WhatsApp</span>
               </button>
             )}
-            {location.contacts.telegram && (
+            {location.contacts?.telegram && (
               <button
                 type="button"
                 onClick={() => openSocialLink('telegram')}
@@ -275,7 +275,7 @@ const Upload = () => {
                 <span className="text-sm text-gray-600">Telegram</span>
               </button>
             )}
-            {location.contacts.email && (
+            {location.contacts?.email && (
               <button
                 type="button"
                 onClick={() => openSocialLink('email')}
@@ -285,7 +285,7 @@ const Upload = () => {
                 <span className="text-sm text-gray-600">Email</span>
               </button>
             )}
-            {location.contacts.phone && (
+            {location.contacts?.phone && (
               <button
                 type="button"
                 onClick={() => openSocialLink('phone')}

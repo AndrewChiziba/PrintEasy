@@ -15,7 +15,7 @@ exports.getLocation = async (req, res) => {
   try {
     const { id } = req.params;
     console.log("id", id);
-    const location = await Location.findOne({ _id: id , user: req.user}); // Filter by user
+    const location = await Location.findOne({ _id: id}); // Filter by user
     console.log("location", location);
     if (!location) {
       return res.status(404).json({ message: 'Location not found or not authorized' });
