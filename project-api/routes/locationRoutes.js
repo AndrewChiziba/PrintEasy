@@ -10,7 +10,7 @@ const protect = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.get('/',protect, getLocations);
-router.get('/:id',protect, getLocation);
+router.get('/:id', getLocation);
 router.post('/',protect, addLocation);
 router.delete('/:id',protect, deleteLocation);
 

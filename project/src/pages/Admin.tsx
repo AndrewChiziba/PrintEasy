@@ -65,7 +65,7 @@ const Admin = () => {
       try {
         const data = await fetchUploadFiles();
         setPrintQueue(data);
-        console.log('Uploaded files:', data[0]); // Move this inside the try block
+        //console.log('Uploaded files:', data[0]); // Move this inside the try block
       } catch (error) {
         toast.error('Error fetching upload files queue');
       }
@@ -143,16 +143,41 @@ const Admin = () => {
     document.body.removeChild(link);
   };
 
-  const handlePrint = async (fileId: string) => {
+  const handlePrint = async (fileIndex: number) => {
     try {
-      //await printFile(fileId);
+      const file = printQueue[fileIndex];
+      if (file.binaryContents) {
+        const base64String = file.binaryContents;
+  
+        // Ensure the data is correctly formatted
+        if (typeof base64String === 'string') {
+          const fileUrl = `data:application/pdf;base64,${base64String}`;
 
+          const linkSource = fileUrl;
+          const downloadLink = document.createElement("a");
+          const fileName = file.name;
+          downloadLink.href = linkSource;
+          downloadLink.download = fileName;
+          downloadLink.click();
+         
+          //console.log('Downloadable Link:', fileUrl);
+          
+        } else {
+          console.error('binaryContents is not a valid Base64 string');
+        }
+
+      } else {
+        console.error('No binaryContents field in the selected file');
+      }
+  
       toast.success('File sent to print');
-      fetchPrintQueue(); // Re-fetch print queue after printing
+      fetchLocations(); // Re-fetch the print queue after printing
     } catch (error) {
+      console.error('Error in handlePrint:', error);
       toast.error('Error printing file');
     }
   };
+  
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -393,14 +418,14 @@ const Admin = () => {
                   <p>No files in the print queue</p>
                 ) : (
                   <ul className="space-y-4">
-                    {printQueue.map((file) => (
+                    {printQueue.map((file, index) => (
                       <li key={file.id} className="flex justify-between items-center">
                         <div>
                           <h3 className="font-medium">{file.name}</h3>
                           <p className="text-sm text-gray-500">{}</p>
                         </div>
                         <button
-                          onClick={() => handlePrint(file.id)}
+                          onClick={() => handlePrint(index)}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           Print
