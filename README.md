@@ -28,8 +28,8 @@ Ensure you have the following installed on your system:
 ### 1. Clone the Repository
 
 ```sh
-git clone https://github.com/yourusername/your-repository.git
-cd your-repository
+git clone https://github.com/Munsanda/PrintEasy.git 
+cd PrintEasy
 ```
 
 ### 2. Set Up the Backend
