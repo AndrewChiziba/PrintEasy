@@ -96,7 +96,4 @@ cd PrintEasy
 - Make sure MongoDB is properly set up and running.
 - Adjust CORS settings in the backend if necessary to allow frontend requests.
 
-## License
-
-This project is licensed under [Your License].
 
