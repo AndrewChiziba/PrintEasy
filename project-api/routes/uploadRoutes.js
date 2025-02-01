@@ -5,7 +5,7 @@ const {
   getUploadFileById,
   updateUploadFile,
   deleteUploadFile
-} = require('../controllers/uploadfileController');
+} = require('../controllers/uploadFileController');
 const protect = require('../middleware/authMiddleware');
 const multer = require('multer');
 
