@@ -48,19 +48,19 @@ cd PrintEasy
    ```
 3. Create a `.env` file in the `backend` directory and add necessary environment variables:
    ```env
-   PORT=5000
+   PORT=3000
    MONGO_URI=your_mongodb_connection_string
    JWT_SECRET=your_jwt_secret
    ```
 4. Start the backend server:
    ```sh
-   npm run dev
+   node server.js
    ```
    or
    ```sh
    yarn dev
    ```
-   The backend should now be running on `http://localhost:5000`.
+   The backend should now be running on `http://localhost:3000`.
 
 ### 3. Set Up the Frontend
 
@@ -78,7 +78,7 @@ cd PrintEasy
    ```
 3. Create a `.env` file in the `frontend` directory and add necessary environment variables:
    ```env
-   VITE_API_URL=http://localhost:5000
+   VITE_API_URL=http://localhost:3000
    ```
 4. Start the frontend development server:
    ```sh
