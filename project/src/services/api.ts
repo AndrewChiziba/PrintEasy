@@ -15,7 +15,7 @@ export interface Token {
   token: string;
 }
 
-const API_URL = 'https://printeasy.spacekudu.com/api'; // Replace with your API base URL
+const API_URL = 'https://insighthr.spacekudu.com/api'; // Replace with your API base URL
 
 // Axios instance with default configurations
 const apiClient = axios.create({

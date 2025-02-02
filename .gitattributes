@@ -1,2 +1,3 @@
 project/src/services/api.ts merge=ours
 project-api/package.json merge=ours
+project-api/server.js merge=ours
