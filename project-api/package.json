@@ -2,9 +2,11 @@
   "name": "project-api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
+  "bin": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pkg": "pkg ."
   },
   "keywords": [],
   "author": "",
@@ -18,5 +20,10 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.4",
     "multer": "^1.4.5-lts.1"
+  },
+  "pkg": {
+    "assets": [ ".env" ],
+    "targets": [ "node18-linux-x64" ]
   }
+
 }
